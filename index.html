@@ -1,0 +1,179 @@
+<!DOCTYPE html><html lang="tl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Survey</title>
+  <style>
+    :root{
+      --bg: #0f172a;          /* slate-900 */
+      --card: #111827;        /* gray-900 */
+      --text: #e5e7eb;        /* gray-200 */
+      --muted: #9ca3af;       /* gray-400 */
+      --yes: #22c55e;         /* green-500 */
+      --no: #ef4444;          /* red-500 */
+      --ring: #38bdf8;        /* sky-400 */
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; background: radial-gradient(1200px 700px at 10% 10%, #111827, #0b1021), var(--bg);
+      color:var(--text); font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+      display:grid; place-items:center;
+    }
+    .card{
+      position: relative;
+      width:min(680px, 92vw);
+      min-height: 360px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+      border:1px solid rgba(255,255,255,.08);
+      border-radius: 24px; padding: 28px; overflow:hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04);
+    }
+    .header{
+      display:flex; align-items:center; gap:12px; margin-bottom: 12px;
+    }
+    .dot{width:10px; height:10px; border-radius:50%; background:var(--ring); box-shadow:0 0 16px var(--ring)}
+    h1{font-size: clamp(1.2rem, 2.8vw, 1.6rem); margin:0; font-weight:700}
+    p.sub{margin:.25rem 0 1rem; color:var(--muted)}.playground{ position: relative; height: 220px; border-radius:18px; border:1px dashed rgba(255,255,255,.1); padding:18px;}
+.question{ font-size: clamp(1.3rem, 3.4vw, 2rem); font-weight:800; text-align:center; margin: 12px 0 20px;}
+
+.buttons{ position:relative; width:100%; height:120px;}
+.btn{ position: absolute; padding: 14px 22px; border-radius: 999px; border:none; cursor:pointer; font-weight:700; letter-spacing:.2px;
+  color:white; transition: transform .08s ease, box-shadow .2s ease;
+}
+.btn:focus-visible{ outline: 2px solid var(--ring); outline-offset: 2px;}
+
+.btn-yes{ background: var(--yes); left: 14%; top: 40%; box-shadow: 0 10px 30px rgba(34,197,94,.35)}
+.btn-yes:active{ transform: scale(.97)}
+
+.btn-no{ background: var(--no); left: 62%; top: 40%; box-shadow: 0 10px 30px rgba(239,68,68,.35)}
+
+.footer{display:flex; justify-content:space-between; align-items:center; margin-top: 12px; color:var(--muted); font-size:.9rem}
+.tag{background: rgba(255,255,255,.06); padding:.35rem .6rem; border-radius:999px}
+
+.confetti{ position: absolute; inset:0; pointer-events:none }
+
+  </style>
+</head>
+<body>
+  <main class="card" aria-live="polite">
+    <div class="header"><span class="dot"></span><h1>Quick Question</h1></div>
+  <section class="playground" id="playground" aria-label="Game area">
+  <div class="question" id="question"> May pag-asa ba? 💖</div>
+  <div class="buttons" id="buttons">
+    <button class="btn btn-yes" id="btnYes" aria-label="Yes">Yes</button>
+    <button class="btn btn-no" id="btnNo" aria-label="No" type="button">No</button>
+  </div>
+  <canvas class="confetti" id="confetti"></canvas>
+</section>
+
+<div class="footer">
+  <span> Made with Me ❤️ </span>
+</div>
+
+  </main>  <script>
+    const playground = document.getElementById('playground');
+    const buttonsWrap = document.getElementById('buttons');
+    const btnNo = document.getElementById('btnNo');
+    const btnYes = document.getElementById('btnYes');
+    const confetti = document.getElementById('confetti');
+    const ctx = confetti.getContext('2d');
+
+    // Resize canvas to container
+    function fitCanvas(){
+      const r = buttonsWrap.getBoundingClientRect();
+      confetti.width = r.width; confetti.height = r.height + 100;
+    }
+    window.addEventListener('resize', fitCanvas, {passive:true});
+    fitCanvas();
+
+    // Utility: random within range
+    const rand = (min, max) => Math.random() * (max - min) + min;
+
+    // Move the "No" button to a random safe position inside the buttons area
+    function moveNoButton(){
+      const wrapRect = buttonsWrap.getBoundingClientRect();
+      const yesRect = btnYes.getBoundingClientRect();
+      const noRect = btnNo.getBoundingClientRect();
+
+      const padding = 8;
+      const maxLeft = wrapRect.width - noRect.width - padding;
+      const maxTop  = wrapRect.height - noRect.height - padding;
+
+      let left, top, tries = 0;
+      do {
+        left = rand(padding, Math.max(padding, maxLeft));
+        top  = rand(padding, Math.max(padding, maxTop));
+        tries++;
+        // keep distance from YES button so they don't overlap
+        const futureNo = {left, top, right: left + noRect.width, bottom: top + noRect.height};
+        const yesPos = {
+          left: yesRect.left - wrapRect.left,
+          top: yesRect.top - wrapRect.top,
+          right: (yesRect.left - wrapRect.left) + yesRect.width,
+          bottom: (yesRect.top - wrapRect.top) + yesRect.height
+        };
+        const overlap = !(futureNo.right < yesPos.left - 10 ||
+                          futureNo.left  > yesPos.right + 10 ||
+                          futureNo.bottom < yesPos.top - 10 ||
+                          futureNo.top   > yesPos.bottom + 10);
+        if(!overlap || tries > 30) break;
+      } while(true);
+
+      btnNo.style.left = left + 'px';
+      btnNo.style.top  = top  + 'px';
+    }
+
+    // Make NO evade on hover, focus, or touch
+    const dodgeEvents = ['mouseover','mouseenter','focus','pointerenter','touchstart','pointerdown'];
+    dodgeEvents.forEach(ev => btnNo.addEventListener(ev, e => {
+      e.preventDefault();
+      moveNoButton();
+    }, {passive:false}));
+
+    // Also dodge when the pointer gets close (proximity)
+    buttonsWrap.addEventListener('mousemove', (e) => {
+      const noRect = btnNo.getBoundingClientRect();
+      const dx = Math.max(0, Math.max(noRect.left - e.clientX, e.clientX - noRect.right));
+      const dy = Math.max(0, Math.max(noRect.top - e.clientY, e.clientY - noRect.bottom));
+      const dist = Math.hypot(dx, dy);
+      if (dist < 40) moveNoButton();
+    }, {passive:true});
+
+    // YES action — cute success + simple confetti
+    btnYes.addEventListener('click', () => {
+      celebrate();
+      btnYes.textContent = 'Meron! 💘';
+      btnNo.disabled = true; btnNo.style.opacity = .7; btnNo.style.cursor = 'default';
+    });
+
+    // Minimal confetti animation
+    let particles = [];
+    function celebrate(){
+      fitCanvas();
+      particles = Array.from({length: 80}, () => ({
+        x: rand(10, confetti.width - 10),
+        y: rand(-20, 10),
+        r: rand(2, 5),
+        vx: rand(-1.2, 1.2),
+        vy: rand(1.2, 2.4),
+        a: rand(0.8, 1)
+      }));
+      requestAnimationFrame(tick);
+      setTimeout(()=> particles = [], 1700);
+    }
+    function tick(){
+      ctx.clearRect(0,0,confetti.width, confetti.height);
+      ctx.globalCompositeOperation = 'lighter';
+      particles.forEach(p => {
+        p.x += p.vx; p.y += p.vy; p.vy += 0.02; p.a -= 0.005;
+        ctx.globalAlpha = Math.max(0, p.a);
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill();
+      });
+      if(particles.length) requestAnimationFrame(tick);
+    }
+
+    // Initial playful nudge: move NO once on load for fun (esp. mobile)
+    setTimeout(moveNoButton, 600);
+  </script></body>
+  </html>
