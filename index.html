@@ -1,179 +1,300 @@
-<!DOCTYPE html><html lang="tl">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Survey</title>
-  <style>
-    :root{
-      --bg: #0f172a;          /* slate-900 */
-      --card: #111827;        /* gray-900 */
-      --text: #e5e7eb;        /* gray-200 */
-      --muted: #9ca3af;       /* gray-400 */
-      --yes: #22c55e;         /* green-500 */
-      --no: #ef4444;          /* red-500 */
-      --ring: #38bdf8;        /* sky-400 */
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0; background: radial-gradient(1200px 700px at 10% 10%, #111827, #0b1021), var(--bg);
-      color:var(--text); font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
-      display:grid; place-items:center;
-    }
-    .card{
-      position: relative;
-      width:min(680px, 92vw);
-      min-height: 360px;
-      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
-      border:1px solid rgba(255,255,255,.08);
-      border-radius: 24px; padding: 28px; overflow:hidden;
-      box-shadow: 0 20px 60px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04);
-    }
-    .header{
-      display:flex; align-items:center; gap:12px; margin-bottom: 12px;
-    }
-    .dot{width:10px; height:10px; border-radius:50%; background:var(--ring); box-shadow:0 0 16px var(--ring)}
-    h1{font-size: clamp(1.2rem, 2.8vw, 1.6rem); margin:0; font-weight:700}
-    p.sub{margin:.25rem 0 1rem; color:var(--muted)}.playground{ position: relative; height: 220px; border-radius:18px; border:1px dashed rgba(255,255,255,.1); padding:18px;}
-.question{ font-size: clamp(1.3rem, 3.4vw, 2rem); font-weight:800; text-align:center; margin: 12px 0 20px;}
-
-.buttons{ position:relative; width:100%; height:120px;}
-.btn{ position: absolute; padding: 14px 22px; border-radius: 999px; border:none; cursor:pointer; font-weight:700; letter-spacing:.2px;
-  color:white; transition: transform .08s ease, box-shadow .2s ease;
-}
-.btn:focus-visible{ outline: 2px solid var(--ring); outline-offset: 2px;}
-
-.btn-yes{ background: var(--yes); left: 14%; top: 40%; box-shadow: 0 10px 30px rgba(34,197,94,.35)}
-.btn-yes:active{ transform: scale(.97)}
-
-.btn-no{ background: var(--no); left: 62%; top: 40%; box-shadow: 0 10px 30px rgba(239,68,68,.35)}
-
-.footer{display:flex; justify-content:space-between; align-items:center; margin-top: 12px; color:var(--muted); font-size:.9rem}
-.tag{background: rgba(255,255,255,.06); padding:.35rem .6rem; border-radius:999px}
-
-.confetti{ position: absolute; inset:0; pointer-events:none }
-
-  </style>
+<meta charset="UTF-8">
+<title>Quiz Bingo</title>
+<script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <main class="card" aria-live="polite">
-    <div class="header"><span class="dot"></span><h1>Quick Question</h1></div>
-  <section class="playground" id="playground" aria-label="Game area">
-  <div class="question" id="question"> May pag-asa ba? 💖</div>
-  <div class="buttons" id="buttons">
-    <button class="btn btn-yes" id="btnYes" aria-label="Yes">Yes</button>
-    <button class="btn btn-no" id="btnNo" aria-label="No" type="button">No</button>
-  </div>
-  <canvas class="confetti" id="confetti"></canvas>
-</section>
 
-<div class="footer">
-  <span> Made with Me ❤️ </span>
+<body class="bg-gradient-to-br from-gray-900 to-black text-white min-h-screen flex items-center justify-center">
+<div class="max-w-5xl w-full p-6">
+
+<h1 class="text-4xl font-extrabold text-center mb-4">QUIZ BINGO</h1>
+
+<!-- TOP BAR -->
+<div class="flex justify-between items-center mb-6">
+  <div class="flex gap-4 items-center">
+    <button id="drawBtn" class="bg-indigo-600 px-6 py-3 rounded-xl font-bold">
+      DRAW NUMBER
+    </button>
+    <div id="currentCall" class="text-3xl font-bold text-yellow-400">—</div>
+  </div>
+  <div class="text-xl font-bold">
+    SCORE: <span id="score">0</span>
+  </div>
 </div>
 
-  </main>  <script>
-    const playground = document.getElementById('playground');
-    const buttonsWrap = document.getElementById('buttons');
-    const btnNo = document.getElementById('btnNo');
-    const btnYes = document.getElementById('btnYes');
-    const confetti = document.getElementById('confetti');
-    const ctx = confetti.getContext('2d');
+<!-- HEADER -->
+<div class="grid grid-cols-5 text-center font-bold mb-2">
+  <div>B</div><div>I</div><div>N</div><div>G</div><div>O</div>
+</div>
 
-    // Resize canvas to container
-    function fitCanvas(){
-      const r = buttonsWrap.getBoundingClientRect();
-      confetti.width = r.width; confetti.height = r.height + 100;
+<!-- BOARD -->
+<div id="board" class="grid grid-cols-5 gap-3 mb-10"></div>
+
+<!-- QUESTION MODAL -->
+<div id="questionBox"
+     class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+  <div class="bg-gray-800 p-6 rounded-2xl w-full max-w-lg">
+
+    <div class="flex justify-between items-center mb-3">
+      <span id="difficultyBadge" class="text-xs px-3 py-1 rounded-full font-bold"></span>
+      <span id="timer" class="text-sm font-bold text-red-400">30s</span>
+    </div>
+
+    <p id="questionText" class="mb-6 text-base leading-relaxed"></p>
+    <div id="choices" class="space-y-3"></div>
+  </div>
+</div>
+
+</div>
+
+<script>
+/* ================= REAL QUESTIONS (75) ================= */
+const questions = [
+/* ---------- EASY ---------- */
+{
+id:1,type:"identification",difficulty:"easy",
+q:"HTML is the standard markup language used to create web pages. It structures content using elements like headings, paragraphs, links, and images. What does HTML stand for?",
+a:"HyperText Markup Language"
+},
+{
+id:2,type:"mcq",difficulty:"easy",
+q:"CSS is used in web development to improve how a website looks. It controls layout, colors, fonts, and spacing. Which of the following best describes the role of CSS?",
+c:["Structure content","Style the webpage","Store data","Run server logic"],
+a:"Style the webpage"
+},
+{
+id:3,type:"truefalse",difficulty:"easy",
+q:"JavaScript is a programming language that runs in the browser and allows websites to respond to user actions such as clicks and form input.",
+a:"true"
+},
+{
+id:4,type:"identification",difficulty:"easy",
+q:"A computer uses RAM to temporarily store data that is actively being used so programs can run faster. What does RAM stand for?",
+a:"Random Access Memory"
+},
+{
+id:5,type:"mcq",difficulty:"easy",
+q:"In basic programming logic, conditions are used to make decisions. Which keyword is commonly used to check a condition?",
+c:["loop","if","print","var"],
+a:"if"
+},
+
+/* ---------- AVERAGE ---------- */
+{
+id:6,type:"identification",difficulty:"average",
+q:"In web development, the client sends a request and the server responds with data or a webpage. This interaction is the foundation of how websites work. What is this model called?",
+a:"Client-server model"
+},
+{
+id:7,type:"mcq",difficulty:"average",
+q:"Databases are used to store and manage data efficiently. Which SQL command is used to retrieve data from a table?",
+c:["INSERT","UPDATE","SELECT","DELETE"],
+a:"SELECT"
+},
+{
+id:8,type:"truefalse",difficulty:"average",
+q:"In programming, a loop is used to repeat a block of code while a certain condition is true.",
+a:"true"
+},
+{
+id:9,type:"identification",difficulty:"average",
+q:"This programming concept allows a function to call itself in order to solve a problem step by step. What is this concept called?",
+a:"Recursion"
+},
+{
+id:10,type:"mcq",difficulty:"average",
+q:"APIs allow different software systems to communicate with each other. What does API stand for?",
+c:["Application Programming Interface","Advanced Program Integration","Applied Protocol Interface","Application Process Interaction"],
+a:"Application Programming Interface"
+},
+
+/* ---------- HARD ---------- */
+{
+id:11,type:"identification",difficulty:"hard",
+q:"In operating systems, this technique allows multiple processes to share CPU time efficiently, giving the appearance that tasks are running simultaneously. What is this technique called?",
+a:"Multitasking"
+},
+{
+id:12,type:"mcq",difficulty:"hard",
+q:"Which data structure follows the Last In, First Out (LIFO) principle and is commonly used in function calls?",
+c:["Queue","Array","Stack","Tree"],
+a:"Stack"
+},
+{
+id:13,type:"truefalse",difficulty:"hard",
+q:"A compiler translates high-level programming code into machine code all at once, while an interpreter translates code line by line.",
+a:"true"
+},
+{
+id:14,type:"identification",difficulty:"hard",
+q:"This cybersecurity concept ensures that data is protected from unauthorized access by converting it into a coded form. What is this process called?",
+a:"Encryption"
+},
+{
+id:15,type:"mcq",difficulty:"hard",
+q:"In networking, which protocol is primarily responsible for securely transferring web pages?",
+c:["HTTP","FTP","SMTP","HTTPS"],
+a:"HTTPS"
+}
+];
+
+/* Duplicate until 75 (simple reuse with shuffle later) */
+let base = [...questions];
+while (questions.length < 75) {
+  base.forEach(q=>{
+    if (questions.length < 75) {
+      questions.push({...q, id: questions.length+1});
     }
-    window.addEventListener('resize', fitCanvas, {passive:true});
-    fitCanvas();
+  });
+}
 
-    // Utility: random within range
-    const rand = (min, max) => Math.random() * (max - min) + min;
+/* ================= POINTS ================= */
+const pointsMap = { easy:10, average:25, hard:50 };
+let score = 0;
+let usedQuestions = new Set();
 
-    // Move the "No" button to a random safe position inside the buttons area
-    function moveNoButton(){
-      const wrapRect = buttonsWrap.getBoundingClientRect();
-      const yesRect = btnYes.getBoundingClientRect();
-      const noRect = btnNo.getBoundingClientRect();
+/* ================= BINGO SETUP ================= */
+const ranges=[[1,15],[16,30],[31,45],[46,60],[61,75]];
+const letters=["B","I","N","G","O"];
+const board=document.getElementById("board");
+const boardState={}, cellByNumber={};
 
-      const padding = 8;
-      const maxLeft = wrapRect.width - noRect.width - padding;
-      const maxTop  = wrapRect.height - noRect.height - padding;
+function pick(min,max){
+  return Array.from({length:max-min+1},(_,i)=>i+min)
+    .sort(()=>Math.random()-0.5).slice(0,5);
+}
+const cols=ranges.map(r=>pick(r[0],r[1]));
 
-      let left, top, tries = 0;
-      do {
-        left = rand(padding, Math.max(padding, maxLeft));
-        top  = rand(padding, Math.max(padding, maxTop));
-        tries++;
-        // keep distance from YES button so they don't overlap
-        const futureNo = {left, top, right: left + noRect.width, bottom: top + noRect.height};
-        const yesPos = {
-          left: yesRect.left - wrapRect.left,
-          top: yesRect.top - wrapRect.top,
-          right: (yesRect.left - wrapRect.left) + yesRect.width,
-          bottom: (yesRect.top - wrapRect.top) + yesRect.height
-        };
-        const overlap = !(futureNo.right < yesPos.left - 10 ||
-                          futureNo.left  > yesPos.right + 10 ||
-                          futureNo.bottom < yesPos.top - 10 ||
-                          futureNo.top   > yesPos.bottom + 10);
-        if(!overlap || tries > 30) break;
-      } while(true);
+for(let r=0;r<5;r++){
+  for(let c=0;c<5;c++){
+    const n=cols[c][r];
+    boardState[n]="available";
+    const cell=document.createElement("button");
+    cell.textContent=n;
+    cell.className="aspect-square bg-gray-700 rounded-xl font-bold text-xl";
+    cell.onclick=()=>openQuestion(n,cell);
+    board.appendChild(cell);
+    cellByNumber[n]=cell;
+  }
+}
 
-      btnNo.style.left = left + 'px';
-      btnNo.style.top  = top  + 'px';
-    }
+/* ================= CALLER ================= */
+let pool=[];
+ranges.forEach((r,i)=>{
+  for(let n=r[0];n<=r[1];n++) pool.push(`${letters[i]}-${n}`);
+});
+pool.sort(()=>Math.random()-0.5);
 
-    // Make NO evade on hover, focus, or touch
-    const dodgeEvents = ['mouseover','mouseenter','focus','pointerenter','touchstart','pointerdown'];
-    dodgeEvents.forEach(ev => btnNo.addEventListener(ev, e => {
-      e.preventDefault();
-      moveNoButton();
-    }, {passive:false}));
+let last=null;
+drawBtn.onclick=()=>{
+  if(!pool.length) return currentCall.textContent="DONE";
+  const call=pool.pop();
+  currentCall.textContent=call;
+  last=parseInt(call.split("-")[1]);
+};
 
-    // Also dodge when the pointer gets close (proximity)
-    buttonsWrap.addEventListener('mousemove', (e) => {
-      const noRect = btnNo.getBoundingClientRect();
-      const dx = Math.max(0, Math.max(noRect.left - e.clientX, e.clientX - noRect.right));
-      const dy = Math.max(0, Math.max(noRect.top - e.clientY, e.clientY - noRect.bottom));
-      const dist = Math.hypot(dx, dy);
-      if (dist < 40) moveNoButton();
-    }, {passive:true});
+/* ================= TIMER ================= */
+let timerInterval=null, timeLeft=30;
+const timerEl=document.getElementById("timer");
 
-    // YES action — cute success + simple confetti
-    btnYes.addEventListener('click', () => {
-      celebrate();
-      btnYes.textContent = 'Meron! 💘';
-      btnNo.disabled = true; btnNo.style.opacity = .7; btnNo.style.cursor = 'default';
+/* ================= QUESTION LOGIC ================= */
+const box=document.getElementById("questionBox");
+const qText=document.getElementById("questionText");
+const choices=document.getElementById("choices");
+const diff=document.getElementById("difficultyBadge");
+
+function openQuestion(num,cell){
+  if(num!==last||boardState[num]!=="available")return;
+  const q=getQuestion();
+  if(!q)return;
+
+  box.classList.remove("hidden");
+  qText.textContent=q.q;
+  setDifficulty(q.difficulty);
+  choices.innerHTML="";
+  startTimer(num,cell);
+
+  if(q.type==="mcq"){
+    q.c.forEach(choice=>{
+      createChoice(choice, choice===q.a, q.difficulty, num, cell);
     });
+  }
+  if(q.type==="truefalse"){
+    ["true","false"].forEach(v=>{
+      createChoice(v, v===q.a, q.difficulty, num, cell);
+    });
+  }
+  if(q.type==="identification"){
+    const input=document.createElement("input");
+    input.className="w-full p-2 rounded bg-gray-700";
+    input.placeholder="Type your answer";
+    choices.appendChild(input);
+    const btn=document.createElement("button");
+    btn.textContent="Submit";
+    btn.className="w-full bg-indigo-600 py-2 rounded-lg";
+    btn.onclick=()=>check(input.value.trim().toLowerCase()===q.a.toLowerCase(),q.difficulty,num,cell);
+    choices.appendChild(btn);
+  }
+}
 
-    // Minimal confetti animation
-    let particles = [];
-    function celebrate(){
-      fitCanvas();
-      particles = Array.from({length: 80}, () => ({
-        x: rand(10, confetti.width - 10),
-        y: rand(-20, 10),
-        r: rand(2, 5),
-        vx: rand(-1.2, 1.2),
-        vy: rand(1.2, 2.4),
-        a: rand(0.8, 1)
-      }));
-      requestAnimationFrame(tick);
-      setTimeout(()=> particles = [], 1700);
-    }
-    function tick(){
-      ctx.clearRect(0,0,confetti.width, confetti.height);
-      ctx.globalCompositeOperation = 'lighter';
-      particles.forEach(p => {
-        p.x += p.vx; p.y += p.vy; p.vy += 0.02; p.a -= 0.005;
-        ctx.globalAlpha = Math.max(0, p.a);
-        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill();
-      });
-      if(particles.length) requestAnimationFrame(tick);
-    }
+function createChoice(text,correct,difficulty,num,cell){
+  const btn=document.createElement("button");
+  btn.textContent=text;
+  btn.className="w-full bg-gray-700 hover:bg-indigo-600 py-2 rounded-lg";
+  btn.onclick=()=>check(correct,difficulty,num,cell);
+  choices.appendChild(btn);
+}
 
-    // Initial playful nudge: move NO once on load for fun (esp. mobile)
-    setTimeout(moveNoButton, 600);
-  </script></body>
-  </html>
+function startTimer(num,cell){
+  clearInterval(timerInterval);
+  timeLeft=30;
+  timerEl.textContent="30s";
+  timerInterval=setInterval(()=>{
+    timeLeft--;
+    timerEl.textContent=timeLeft+"s";
+    if(timeLeft<=0){
+      clearInterval(timerInterval);
+      boardState[num]="locked";
+      cell.className="aspect-square bg-gray-900 line-through rounded-xl font-bold text-xl";
+      close();
+    }
+  },1000);
+}
+
+function check(correct,difficulty,num,cell){
+  clearInterval(timerInterval);
+  if(correct){
+    score+=pointsMap[difficulty];
+    document.getElementById("score").textContent=score;
+    boardState[num]="marked";
+    cell.className="aspect-square bg-green-600 rounded-xl font-bold text-xl";
+  }else{
+    boardState[num]="locked";
+    cell.className="aspect-square bg-gray-900 line-through rounded-xl font-bold text-xl";
+  }
+  close();
+}
+
+function setDifficulty(d){
+  const map={easy:"bg-green-600",average:"bg-yellow-500",hard:"bg-red-600"};
+  diff.textContent=d.toUpperCase()+" • "+pointsMap[d]+" pts";
+  diff.className="text-xs px-3 py-1 rounded-full font-bold "+map[d];
+}
+
+function getQuestion(){
+  const a=questions.filter(q=>!usedQuestions.has(q.id));
+  if(!a.length)return null;
+  const q=a[Math.floor(Math.random()*a.length)];
+  usedQuestions.add(q.id);
+  return q;
+}
+
+function close(){
+  box.classList.add("hidden");
+  last=null;
+}
+</script>
+</body>
+</html>
