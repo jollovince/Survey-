@@ -1,300 +1,439 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Quiz Bingo</title>
-<script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8">
+  <title>Quiz Bingo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- TAILWIND -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- ICONS -->
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 
-<body class="bg-gradient-to-br from-gray-900 to-black text-white min-h-screen flex items-center justify-center">
-<div class="max-w-5xl w-full p-6">
+<body class="bg-gradient-to-br from-gray-900 via-slate-900 to-black text-white
+             min-h-screen flex justify-center items-center">
 
-<h1 class="text-4xl font-extrabold text-center mb-4">QUIZ BINGO</h1>
+<div class="w-full max-w-6xl p-8">
 
-<!-- TOP BAR -->
-<div class="flex justify-between items-center mb-6">
-  <div class="flex gap-4 items-center">
-    <button id="drawBtn" class="bg-indigo-600 px-6 py-3 rounded-xl font-bold">
-      DRAW NUMBER
-    </button>
-    <div id="currentCall" class="text-3xl font-bold text-yellow-400">—</div>
-  </div>
-  <div class="text-xl font-bold">
-    SCORE: <span id="score">0</span>
-  </div>
-</div>
+  <!-- TITLE -->
+<h1 class="relative text-center mb-10 select-none
+           animate-[fadeIn_0.9s_ease-out_forwards] opacity-0">
+  <span class="block text-sm uppercase tracking-[0.35em] text-gray-400 mb-2">
+    Test Your Knowledge
+  </span>
 
-<!-- HEADER -->
-<div class="grid grid-cols-5 text-center font-bold mb-2">
-  <div>B</div><div>I</div><div>N</div><div>G</div><div>O</div>
-</div>
+  <span class="relative inline-block text-5xl md:text-6xl font-extrabold tracking-wide">
+    <span class="absolute inset-0 blur-xl bg-indigo-500/30"></span>
+    <span class="relative text-white">
+      QUIZ <span class="text-indigo-400">BINGO</span>
+    </span>
+  </span>
 
-<!-- BOARD -->
-<div id="board" class="grid grid-cols-5 gap-3 mb-10"></div>
+  <span class="block mt-3 h-1 w-32 mx-auto rounded-full
+               bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400"></span>
+</h1>
 
-<!-- QUESTION MODAL -->
-<div id="questionBox"
-     class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-  <div class="bg-gray-800 p-6 rounded-2xl w-full max-w-lg">
+<style>
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+</style>
 
-    <div class="flex justify-between items-center mb-3">
-      <span id="difficultyBadge" class="text-xs px-3 py-1 rounded-full font-bold"></span>
-      <span id="timer" class="text-sm font-bold text-red-400">30s</span>
+  <!-- HOW TO PLAY -->
+<div
+  class="bg-black/40 border border-white/10
+         rounded-2xl mb-8 overflow-hidden">
+
+  <!-- HEADER -->
+  <button id="toggleInstructions"
+    class="w-full flex justify-between items-center
+           px-6 py-4 font-bold
+           text-indigo-400
+           hover:bg-white/5 transition">
+
+    <span class="flex items-center gap-3">
+      <span
+        class="flex items-center justify-center
+               w-9 h-9 rounded-xl
+               bg-indigo-500/10 text-indigo-400">
+        <i data-lucide="info" class="w-5 h-5"></i>
+      </span>
+      How to Play
+    </span>
+
+    <span id="toggleIcon"
+      class="text-indigo-400 transition-transform">
+      ▼
+    </span>
+  </button>
+
+  <!-- CONTENT -->
+  <div id="instructions"
+    class="px-6 pb-6 space-y-4 text-sm text-gray-200 hidden">
+
+    <div class="flex items-start gap-4">
+      <span
+        class="flex items-center justify-center
+               w-8 h-8 rounded-lg
+               bg-purple-500/10 text-purple-400">
+        <i data-lucide="layout-grid" class="w-4 h-4"></i>
+      </span>
+      <p>Select a <b class="text-white">pattern</b> before starting the game.</p>
     </div>
 
-    <p id="questionText" class="mb-6 text-base leading-relaxed"></p>
-    <div id="choices" class="space-y-3"></div>
+    <div class="flex items-start gap-4">
+      <span
+        class="flex items-center justify-center
+               w-8 h-8 rounded-lg
+               bg-yellow-500/10 text-yellow-400">
+        <i data-lucide="dice-5" class="w-4 h-4"></i>
+      </span>
+      <p>Press <b class="text-white">DRAW</b> to reveal a random number.</p>
+    </div>
+
+    <div class="flex items-start gap-4">
+      <span
+        class="flex items-center justify-center
+               w-8 h-8 rounded-lg
+               bg-blue-500/10 text-blue-400">
+        <i data-lucide="mouse-pointer-click" class="w-4 h-4"></i>
+      </span>
+      <p>Click the <b class="text-white">matching number</b> on the board.</p>
+    </div>
+
+    <div class="flex items-start gap-4">
+      <span
+        class="flex items-center justify-center
+               w-8 h-8 rounded-lg
+               bg-red-500/10 text-red-400">
+        <i data-lucide="clock" class="w-4 h-4"></i>
+      </span>
+      <p>You have <b class="text-white">30 seconds</b> to answer.</p>
+    </div>
+
+    <div class="flex items-start gap-4">
+      <span
+        class="flex items-center justify-center
+               w-8 h-8 rounded-lg
+               bg-green-500/10 text-green-400">
+        <i data-lucide="check-circle" class="w-4 h-4"></i>
+      </span>
+      <p>Correct answers <b class="text-white">mark the cell</b> and give points.</p>
+    </div>
+
   </div>
 </div>
 
+  <!-- PATTERN PICKER -->
+<div class="flex flex-wrap justify-center gap-5 mb-6">
+
+  <!-- ROW -->
+  <button data-pattern="row"
+    class="pattern-btn group w-24 h-24 rounded-2xl
+           bg-black/40 border border-white/10
+           flex flex-col items-center justify-center gap-2
+           font-bold tracking-wide
+           hover:border-indigo-400 hover:bg-white/5
+           active:scale-95 transition">
+    <span class="text-sm text-indigo-300">ROW</span>
+  </button>
+
+  <!-- COLUMN -->
+  <button data-pattern="col"
+    class="pattern-btn group w-24 h-24 rounded-2xl
+           bg-black/40 border border-white/10
+           flex flex-col items-center justify-center gap-2
+           font-bold tracking-wide
+           hover:border-indigo-400 hover:bg-white/5
+           active:scale-95 transition">
+    <span class="text-sm text-indigo-300">COLUMN</span>
+  </button>
+
+  <!-- DIAGONAL -->
+  <button data-pattern="diagonal"
+    class="pattern-btn group w-24 h-24 rounded-2xl
+           bg-black/40 border border-white/10
+           flex flex-col items-center justify-center gap-2
+           font-bold tracking-wide
+           hover:border-indigo-400 hover:bg-white/5
+           active:scale-95 transition">
+    <span class="text-sm text-indigo-300">DIAGONAL</span>
+  </button>
+
+  <!-- CORNERS -->
+  <button data-pattern="corners"
+    class="pattern-btn group w-24 h-24 rounded-2xl
+           bg-black/40 border border-white/10
+           flex flex-col items-center justify-center gap-2
+           font-bold tracking-wide
+           hover:border-indigo-400 hover:bg-white/5
+           active:scale-95 transition">
+    <span class="text-sm text-indigo-300">CORNERS</span>
+  </button>
+
+  <!-- FULL -->
+  <button data-pattern="full"
+    class="pattern-btn group w-24 h-24 rounded-2xl
+           bg-black/40 border border-white/10
+           flex flex-col items-center justify-center gap-2
+           font-bold tracking-wide
+           hover:border-indigo-400 hover:bg-white/5
+           active:scale-95 transition">
+    <span class="text-sm text-indigo-300">FULL</span>
+  </button>
+
+  <!-- RANDOM -->
+  <button id="randomPatternBtn"
+    class="pattern-btn group w-24 h-24 rounded-2xl
+           bg-gradient-to-br from-yellow-400 to-yellow-600
+           text-black font-extrabold
+           flex flex-col items-center justify-center gap-2
+           shadow-lg hover:from-yellow-300 hover:to-yellow-500
+           active:scale-95 transition">
+    RANDOM
+  </button>
+
 </div>
 
+  <!-- CONFIRM -->
+  <div class="flex justify-center mb-6">
+    <button id="confirmPatternBtn"
+      class="px-8 py-3 rounded-xl font-bold
+             bg-green-600 opacity-50 pointer-events-none">
+      CONFIRM PATTERN
+    </button>
+  </div>
+
+  <!-- PATTERN GUIDE -->
+  <div class="flex justify-center mb-8">
+    <div id="patternGuide"
+      class="grid grid-cols-5 gap-1 bg-black/40 p-3 rounded-xl"></div>
+  </div>
+
+  <!-- TOP BAR -->
+  <div class="flex justify-between items-center mb-8">
+    <div class="flex items-center gap-4">
+      <button id="drawBtn"
+        class="bg-indigo-600 hover:bg-indigo-700 px-8 py-3 rounded-xl font-bold">
+        DRAW
+      </button>
+      <div id="currentCall"
+        class="w-20 h-20 flex items-center justify-center rounded-full
+               bg-black/40 border-2 border-yellow-400
+               text-3xl font-extrabold text-yellow-400">
+        —
+      </div>
+    </div>
+
+    <div class="text-xl font-semibold bg-black/40 px-6 py-3 rounded-xl">
+      Score: <span id="score" class="text-green-400">0</span>
+    </div>
+  </div>
+
+  <!-- BOARD -->
+<!-- BOARD WRAPPER -->
+<div
+  class="bg-gradient-to-br from-black/60 to-slate-900/60
+         border border-white/10
+         rounded-3xl p-6
+         shadow-2xl">
+
+  <!-- BINGO HEADER -->
+<div
+  class="grid grid-cols-5 text-center mb-4
+         font-extrabold tracking-widest text-lg">
+  <div class="text-indigo-300 glow">B</div>
+  <div class="text-indigo-300 glow">I</div>
+  <div class="text-indigo-300 glow">N</div>
+  <div class="text-indigo-300 glow">G</div>
+  <div class="text-indigo-300 glow">O</div>
+</div>
+
+<style>
+  .glow {
+    text-shadow:
+      0 0 6px rgba(99,102,241,0.8),
+      0 0 14px rgba(99,102,241,0.6),
+      0 0 28px rgba(99,102,241,0.4);
+  }
+</style>
+
+  <!-- BOARD -->
+<div id="board"
+  class="grid grid-cols-5 gap-4
+
+  [&>button]:relative
+  [&>button]:rounded-xl
+  [&>button]:border
+  [&>button]:transition
+  [&>button]:duration-300
+
+  /* BASE GLOW */
+  [&>button]:shadow-[0_0_12px_rgba(255,255,255,0.15)]
+
+  /* COLOR VARIATIONS */
+  [&>button:nth-child(5n+1)]:border-indigo-400/40
+  [&>button:nth-child(5n+1)]:shadow-[0_0_14px_rgba(99,102,241,0.8)]
+
+  [&>button:nth-child(5n+2)]:border-purple-400/40
+  [&>button:nth-child(5n+2)]:shadow-[0_0_14px_rgba(168,85,247,0.8)]
+
+  [&>button:nth-child(5n+3)]:border-pink-400/40
+  [&>button:nth-child(5n+3)]:shadow-[0_0_14px_rgba(236,72,153,0.8)]
+
+  [&>button:nth-child(5n+4)]:border-cyan-400/40
+  [&>button:nth-child(5n+4)]:shadow-[0_0_14px_rgba(34,211,238,0.8)]
+
+  [&>button:nth-child(5n)]:border-emerald-400/40
+  [&>button:nth-child(5n)]:shadow-[0_0_14px_rgba(52,211,153,0.8)]
+
+  /* HOVER BOOST */
+  [&>button:hover]:shadow-[0_0_26px_rgba(255,255,255,0.9)]
+  ">
+  
+  <!-- cells injected by JS -->
+</div>
+
+</div>
+
+<!-- QUESTION MODAL (REQUIRED) -->
+<div id="questionModal"
+  class="fixed inset-0 z-[9999] hidden
+         flex items-center justify-center
+         bg-black/80 backdrop-blur-sm">
+
+  <!-- CARD -->
+  <div
+    class="relative w-full max-w-xl mx-4
+           bg-gradient-to-br from-gray-900 to-slate-900
+           border border-white/10
+           rounded-3xl p-6 space-y-5
+           shadow-2xl">
+
+    <!-- HEADER -->
+    <div class="flex justify-between items-center">
+      <div id="difficulty"
+        class="px-3 py-1 rounded-full
+               bg-yellow-500/10 text-yellow-400
+               text-xs font-bold tracking-wide">
+      </div>
+
+      <div id="timer"
+        class="px-3 py-1 rounded-full
+               bg-red-500/10 text-red-400
+               text-xs font-bold">
+        30s
+      </div>
+    </div>
+
+    <!-- QUESTION -->
+    <p id="questionText"
+      class="text-lg md:text-xl font-semibold leading-relaxed">
+    </p>
+
+    <!-- ANSWERS -->
+    <div id="choices" class="space-y-3"></div>
+
+    <!-- FOOTER LINE -->
+    <div class="pt-2 border-t border-white/10
+                text-center text-xs text-gray-400">
+      Choose wisely — no second chances
+    </div>
+
+  </div>
+</div>
+
+<!-- BINGO POPUP -->
+<div id="bingoPopup"
+  class="fixed inset-0 z-50 hidden
+         bg-black/80 backdrop-blur-md
+         flex items-center justify-center">
+
+  <div
+    class="relative w-[320px] sm:w-[360px]
+           bg-gradient-to-br from-gray-900 via-slate-900 to-black
+           border border-yellow-400/40
+           rounded-3xl p-8 text-center space-y-6
+           shadow-[0_0_40px_rgba(234,179,8,0.6)]
+           animate-[scaleIn_0.35s_ease-out]">
+
+    <!-- GLOW RING -->
+    <div class="absolute inset-0 rounded-3xl
+                ring-2 ring-yellow-400/30
+                shadow-[0_0_60px_rgba(234,179,8,0.8)]
+                pointer-events-none"></div>
+
+    <!-- TITLE -->
+    <h2 class="text-5xl font-extrabold tracking-widest
+               text-yellow-400 drop-shadow-[0_0_18px_rgba(234,179,8,0.9)]">
+      BINGO!
+    </h2>
+
+    <p class="text-gray-300 text-sm">
+      Congratulations! You completed the pattern
+    </p>
+
+    <!-- ACTIONS -->
+    <div class="flex gap-4 justify-center pt-2">
+      <button id="nextCardBtn"
+        class="px-6 py-2 rounded-xl font-bold
+               bg-gradient-to-r from-green-500 to-emerald-600
+               shadow-[0_0_18px_rgba(34,197,94,0.8)]
+               hover:scale-105 transition">
+        NEW CARD
+      </button>
+
+      <button id="exitBtn"
+        class="px-6 py-2 rounded-xl font-bold
+               bg-gradient-to-r from-red-500 to-rose-600
+               shadow-[0_0_18px_rgba(239,68,68,0.8)]
+               hover:scale-105 transition">
+        EXIT
+      </button>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes scaleIn {
+  from { transform: scale(0.8); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+</style>
+
+<!-- SCRIPTS -->
+<script src="js/questions.js" defer></script>
+<script src="js/game.js" defer></script>
+
 <script>
-/* ================= REAL QUESTIONS (75) ================= */
-const questions = [
-/* ---------- EASY ---------- */
-{
-id:1,type:"identification",difficulty:"easy",
-q:"HTML is the standard markup language used to create web pages. It structures content using elements like headings, paragraphs, links, and images. What does HTML stand for?",
-a:"HyperText Markup Language"
-},
-{
-id:2,type:"mcq",difficulty:"easy",
-q:"CSS is used in web development to improve how a website looks. It controls layout, colors, fonts, and spacing. Which of the following best describes the role of CSS?",
-c:["Structure content","Style the webpage","Store data","Run server logic"],
-a:"Style the webpage"
-},
-{
-id:3,type:"truefalse",difficulty:"easy",
-q:"JavaScript is a programming language that runs in the browser and allows websites to respond to user actions such as clicks and form input.",
-a:"true"
-},
-{
-id:4,type:"identification",difficulty:"easy",
-q:"A computer uses RAM to temporarily store data that is actively being used so programs can run faster. What does RAM stand for?",
-a:"Random Access Memory"
-},
-{
-id:5,type:"mcq",difficulty:"easy",
-q:"In basic programming logic, conditions are used to make decisions. Which keyword is commonly used to check a condition?",
-c:["loop","if","print","var"],
-a:"if"
-},
+  // instruction toggle
+  const btn = document.getElementById("toggleInstructions");
+  const box = document.getElementById("instructions");
+  const icon = document.getElementById("toggleIcon");
 
-/* ---------- AVERAGE ---------- */
-{
-id:6,type:"identification",difficulty:"average",
-q:"In web development, the client sends a request and the server responds with data or a webpage. This interaction is the foundation of how websites work. What is this model called?",
-a:"Client-server model"
-},
-{
-id:7,type:"mcq",difficulty:"average",
-q:"Databases are used to store and manage data efficiently. Which SQL command is used to retrieve data from a table?",
-c:["INSERT","UPDATE","SELECT","DELETE"],
-a:"SELECT"
-},
-{
-id:8,type:"truefalse",difficulty:"average",
-q:"In programming, a loop is used to repeat a block of code while a certain condition is true.",
-a:"true"
-},
-{
-id:9,type:"identification",difficulty:"average",
-q:"This programming concept allows a function to call itself in order to solve a problem step by step. What is this concept called?",
-a:"Recursion"
-},
-{
-id:10,type:"mcq",difficulty:"average",
-q:"APIs allow different software systems to communicate with each other. What does API stand for?",
-c:["Application Programming Interface","Advanced Program Integration","Applied Protocol Interface","Application Process Interaction"],
-a:"Application Programming Interface"
-},
+  btn.onclick = () => {
+    box.classList.toggle("hidden");
+    icon.textContent = box.classList.contains("hidden") ? "▼" : "▲";
+  };
 
-/* ---------- HARD ---------- */
-{
-id:11,type:"identification",difficulty:"hard",
-q:"In operating systems, this technique allows multiple processes to share CPU time efficiently, giving the appearance that tasks are running simultaneously. What is this technique called?",
-a:"Multitasking"
-},
-{
-id:12,type:"mcq",difficulty:"hard",
-q:"Which data structure follows the Last In, First Out (LIFO) principle and is commonly used in function calls?",
-c:["Queue","Array","Stack","Tree"],
-a:"Stack"
-},
-{
-id:13,type:"truefalse",difficulty:"hard",
-q:"A compiler translates high-level programming code into machine code all at once, while an interpreter translates code line by line.",
-a:"true"
-},
-{
-id:14,type:"identification",difficulty:"hard",
-q:"This cybersecurity concept ensures that data is protected from unauthorized access by converting it into a coded form. What is this process called?",
-a:"Encryption"
-},
-{
-id:15,type:"mcq",difficulty:"hard",
-q:"In networking, which protocol is primarily responsible for securely transferring web pages?",
-c:["HTTP","FTP","SMTP","HTTPS"],
-a:"HTTPS"
-}
-];
-
-/* Duplicate until 75 (simple reuse with shuffle later) */
-let base = [...questions];
-while (questions.length < 75) {
-  base.forEach(q=>{
-    if (questions.length < 75) {
-      questions.push({...q, id: questions.length+1});
-    }
+  // pattern button styling
+  document.querySelectorAll(".pattern-btn").forEach(b=>{
+    b.className =
+      "pattern-btn w-24 h-12 rounded-xl bg-black/40 border border-white/10 " +
+      "hover:border-yellow-400 hover:bg-white/5 font-bold transition";
   });
-}
 
-/* ================= POINTS ================= */
-const pointsMap = { easy:10, average:25, hard:50 };
-let score = 0;
-let usedQuestions = new Set();
-
-/* ================= BINGO SETUP ================= */
-const ranges=[[1,15],[16,30],[31,45],[46,60],[61,75]];
-const letters=["B","I","N","G","O"];
-const board=document.getElementById("board");
-const boardState={}, cellByNumber={};
-
-function pick(min,max){
-  return Array.from({length:max-min+1},(_,i)=>i+min)
-    .sort(()=>Math.random()-0.5).slice(0,5);
-}
-const cols=ranges.map(r=>pick(r[0],r[1]));
-
-for(let r=0;r<5;r++){
-  for(let c=0;c<5;c++){
-    const n=cols[c][r];
-    boardState[n]="available";
-    const cell=document.createElement("button");
-    cell.textContent=n;
-    cell.className="aspect-square bg-gray-700 rounded-xl font-bold text-xl";
-    cell.onclick=()=>openQuestion(n,cell);
-    board.appendChild(cell);
-    cellByNumber[n]=cell;
-  }
-}
-
-/* ================= CALLER ================= */
-let pool=[];
-ranges.forEach((r,i)=>{
-  for(let n=r[0];n<=r[1];n++) pool.push(`${letters[i]}-${n}`);
-});
-pool.sort(()=>Math.random()-0.5);
-
-let last=null;
-drawBtn.onclick=()=>{
-  if(!pool.length) return currentCall.textContent="DONE";
-  const call=pool.pop();
-  currentCall.textContent=call;
-  last=parseInt(call.split("-")[1]);
-};
-
-/* ================= TIMER ================= */
-let timerInterval=null, timeLeft=30;
-const timerEl=document.getElementById("timer");
-
-/* ================= QUESTION LOGIC ================= */
-const box=document.getElementById("questionBox");
-const qText=document.getElementById("questionText");
-const choices=document.getElementById("choices");
-const diff=document.getElementById("difficultyBadge");
-
-function openQuestion(num,cell){
-  if(num!==last||boardState[num]!=="available")return;
-  const q=getQuestion();
-  if(!q)return;
-
-  box.classList.remove("hidden");
-  qText.textContent=q.q;
-  setDifficulty(q.difficulty);
-  choices.innerHTML="";
-  startTimer(num,cell);
-
-  if(q.type==="mcq"){
-    q.c.forEach(choice=>{
-      createChoice(choice, choice===q.a, q.difficulty, num, cell);
-    });
-  }
-  if(q.type==="truefalse"){
-    ["true","false"].forEach(v=>{
-      createChoice(v, v===q.a, q.difficulty, num, cell);
-    });
-  }
-  if(q.type==="identification"){
-    const input=document.createElement("input");
-    input.className="w-full p-2 rounded bg-gray-700";
-    input.placeholder="Type your answer";
-    choices.appendChild(input);
-    const btn=document.createElement("button");
-    btn.textContent="Submit";
-    btn.className="w-full bg-indigo-600 py-2 rounded-lg";
-    btn.onclick=()=>check(input.value.trim().toLowerCase()===q.a.toLowerCase(),q.difficulty,num,cell);
-    choices.appendChild(btn);
-  }
-}
-
-function createChoice(text,correct,difficulty,num,cell){
-  const btn=document.createElement("button");
-  btn.textContent=text;
-  btn.className="w-full bg-gray-700 hover:bg-indigo-600 py-2 rounded-lg";
-  btn.onclick=()=>check(correct,difficulty,num,cell);
-  choices.appendChild(btn);
-}
-
-function startTimer(num,cell){
-  clearInterval(timerInterval);
-  timeLeft=30;
-  timerEl.textContent="30s";
-  timerInterval=setInterval(()=>{
-    timeLeft--;
-    timerEl.textContent=timeLeft+"s";
-    if(timeLeft<=0){
-      clearInterval(timerInterval);
-      boardState[num]="locked";
-      cell.className="aspect-square bg-gray-900 line-through rounded-xl font-bold text-xl";
-      close();
-    }
-  },1000);
-}
-
-function check(correct,difficulty,num,cell){
-  clearInterval(timerInterval);
-  if(correct){
-    score+=pointsMap[difficulty];
-    document.getElementById("score").textContent=score;
-    boardState[num]="marked";
-    cell.className="aspect-square bg-green-600 rounded-xl font-bold text-xl";
-  }else{
-    boardState[num]="locked";
-    cell.className="aspect-square bg-gray-900 line-through rounded-xl font-bold text-xl";
-  }
-  close();
-}
-
-function setDifficulty(d){
-  const map={easy:"bg-green-600",average:"bg-yellow-500",hard:"bg-red-600"};
-  diff.textContent=d.toUpperCase()+" • "+pointsMap[d]+" pts";
-  diff.className="text-xs px-3 py-1 rounded-full font-bold "+map[d];
-}
-
-function getQuestion(){
-  const a=questions.filter(q=>!usedQuestions.has(q.id));
-  if(!a.length)return null;
-  const q=a[Math.floor(Math.random()*a.length)];
-  usedQuestions.add(q.id);
-  return q;
-}
-
-function close(){
-  box.classList.add("hidden");
-  last=null;
-}
+  lucide.createIcons();
 </script>
+
 </body>
 </html>
